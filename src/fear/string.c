@@ -1,12 +1,26 @@
-#include <string.h>
-#include <stdbool.h>
-#include <ctype.h>
 #include "fear/string.h"
+
+u32 fear_strlen(const char* str)
+{
+    u32 size = 0;
+
+    while(str[size] != '\0')
+    {
+        size++;
+    }
+
+    return size;
+}
+
+u32 fear_is_digit(char digit)
+{
+    return digit >= '0' && digit <= '9';
+}
 
 struct String fear_make_str(const char* str) {
     struct String ans;
     ans.data = str;
-    ans.size = strlen(str);
+    ans.size = fear_strlen(str);
 
     return ans;
 }
@@ -53,7 +67,7 @@ b8 fear_parse_int(const struct String* str, s64* ans) {
     for(u32 i = offset; i < str->size; i++) {
         const char cur = str->data[i];
 
-        if(!isdigit(cur)) {
+        if(!fear_is_digit(cur)) {
             return true;
         }
 

@@ -1,9 +1,7 @@
-#include <string.h>
-#include <stdlib.h>
-
 #include "fear/arena.h"
 #include "fear/mem.h"
 #include "fear/logger.h"
+#include "fear/platform.h"
 
 struct Arena fear_make_arena(void* buffer, u32 size) {
     struct Arena arena;
@@ -21,7 +19,7 @@ struct Arena fear_make_arena(void* buffer, u32 size) {
 }
 
 void fear_destroy_arena(struct Arena* arena) {
-    free(arena->data);
+    fear_free(arena->data);
 }
 
 void* fear_arena_alloc(struct Arena* arena,u32 size) {
@@ -52,7 +50,6 @@ void fear_destroy_arena_allocator(struct ArenaAllocator* alloc) {
     }
 }
 
-#include <stdlib.h>
 
 void* fear_arena_allocator_alloc(struct ArenaAllocator* allocator, u32 size) {
     {
@@ -60,7 +57,7 @@ void* fear_arena_allocator_alloc(struct ArenaAllocator* allocator, u32 size) {
 
         if(arena->size + size >= arena->capacity) {
             const u32 new_arena_size = arena->capacity * 2;
-            void* buffer = malloc(arena->capacity * 2);
+            void* buffer = fear_alloc(arena->capacity * 2);
 
             if(!buffer) {
                 FEAR_ERROR("Could not allocate new arena for allocation: %zd",size);
@@ -84,7 +81,7 @@ enum fear_error fear_move_str_arena(struct String* str, struct ArenaAllocator* a
         return FEAR_ERROR_OOM;
     }
 
-    memcpy(data,str->data,str->size);
+    fear_memcpy(data,str->data,str->size);
     data[str->size] = '\0';
     str->data = data;
 
