@@ -2,6 +2,7 @@
 #include "fear/mem.h"
 #include "fear/logger.h"
 #include "fear/platform.h"
+#include "fear/heap.h"
 
 struct Arena fear_make_arena(void* buffer, u32 size) {
     struct Arena arena;
@@ -57,7 +58,7 @@ void* fear_arena_allocator_alloc(struct ArenaAllocator* allocator, u32 size) {
 
         if(arena->size + size >= arena->capacity) {
             const u32 new_arena_size = arena->capacity * 2;
-            void* buffer = fear_alloc(arena->capacity * 2);
+            void* buffer = fear_alloc(arena->capacity * 2,sizeof(char));
 
             if(!buffer) {
                 FEAR_ERROR("Could not allocate new arena for allocation: %zd",size);

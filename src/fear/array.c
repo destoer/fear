@@ -3,7 +3,7 @@
 #include "fear/platform.h"
 
 enum fear_error fear_resize_array(struct Array *array, u32 size) {
-    void* buffer = fear_realloc(array->data,size);
+    void* buffer = fear_realloc(array->data,size,sizeof(char));
 
     if(!buffer) {
         FEAR_ERROR("Could not allocate array of size %zd\n",size);
@@ -20,7 +20,7 @@ enum fear_error fear_resize_array(struct Array *array, u32 size) {
 static enum fear_error fear_reserve_mem(struct Array* array, u32 bytes) {
     if(array->capacity - array->size < bytes) {
         const u32 new_capacity = (array->capacity + bytes) * 2;
-        void* buffer = fear_realloc(array->data,new_capacity);
+        void* buffer = fear_realloc(array->data,new_capacity,sizeof(char));
 
         if(!buffer) {
             return FEAR_ERROR_OOM;

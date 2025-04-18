@@ -1,5 +1,6 @@
 #include <fear/fear.h>
 #include <assert.h>
+#include <stdlib.h>
 
 
 void test_array_push_and_pop()
@@ -41,6 +42,13 @@ void test_fear_format()
 
 int main()
 {
+    // Setup our heap
+    size_t heap_size = 4 * 1024 * 1024;
+    void* heap = malloc(heap_size);
+    assert(heap);
+
+    fear_init_context(heap,heap_size);
+
     FEAR_DEBUG("Starting fear tests!");
 
     test_array_push_and_pop();
