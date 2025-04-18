@@ -40,8 +40,7 @@ enum fear_error fear_read_str(const char* path, struct Array* array) {
     u32 size = 0;
     FILE* fp = fear_read_file(path,&size);
 
-    if(!fp)
-    {
+    if(!fp) {
         return FEAR_ERROR_FILE_READ;
     }
 

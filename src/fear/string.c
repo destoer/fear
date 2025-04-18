@@ -91,21 +91,17 @@ void fear_destroy_heap_str(struct String* string)
     string->size = 0;
 }
 
-void fear_write_str(const struct String string)
-{
+void fear_write_str(const struct String string) {
     fear_write_chars(string.data);
 }
 
-void fear_format_int(struct Array* string_buffer,s32 v, u32 base)
-{
-    if(base > 16 || base == 0)
-    {
+void fear_format_int(struct Array* string_buffer,s64 v, u64 base) {
+    if(base > 16 || base == 0) {
         return;
     }
 
-    if(v == 0)
-    {
-        fear_push_char(string_buffer,0);
+    if(v == 0) {
+        fear_push_char(string_buffer,'0');
         return;
     }
 
@@ -114,9 +110,8 @@ void fear_format_int(struct Array* string_buffer,s32 v, u32 base)
     const char* DIGIT_CHAR = "0123456789ABCDEF";
     u32 digits = 0;
 
-    while(v != 0)
-    {
-        s32 digit = v % base;
+    while(v != 0) {
+        s64 digit = v % base;
         v = v / base;
 
         char character = DIGIT_CHAR[digit];
@@ -126,13 +121,34 @@ void fear_format_int(struct Array* string_buffer,s32 v, u32 base)
 
     char* start = (char*)&string_buffer->data[start_pos];
 
-    for(size_t i = 0; i < digits / 2; i++)
-    {
+    for(size_t i = 0; i < digits / 2; i++) {
         const char tmp = start[i];
         char* v2 = &start[digits - i - 1];
         start[i] = *v2;
         *v2 = tmp;
     }  
+}
+
+static void format_int_specifier(struct Array* string_buffer,char spec, s64 data)
+{
+    switch(spec) {
+        case 'd':
+        {
+            fear_format_int(string_buffer,data,10);
+            break;
+        }
+
+        case 'x':
+        {
+            fear_format_int(string_buffer,data,16);
+            break;  
+        }
+
+        default:
+        {
+            break;
+        }
+    }
 }
 
 struct String fear_vformat(const struct String fmt, va_list args)
@@ -141,25 +157,22 @@ struct String fear_vformat(const struct String fmt, va_list args)
     // Having a buffer that is the size of the format string is a good lower limit on the size
     fear_reserve_mem(&string_buffer,fmt.size);
 
-    for(u32 i = 0; i < fmt.size; i++)
-    {
-        if(fmt.data[i] != '%')
-        {
+    for(u32 i = 0; i < fmt.size; i++) {
+
+        if(fmt.data[i] != '%') {
             fear_push_char(&string_buffer,fmt.data[i]);
             continue;
         }
 
         // We are out of bounds
-        if(i + 1 >= fmt.size)
-        {
+        if(i + 1 >= fmt.size) {
             break;
         }
 
         const char spec = fmt.data[i + 1];
         i++;
 
-        switch(spec)
-        {
+        switch(spec) {
             case 's':
             {
                 const char* str = va_arg(args,const char*);
@@ -185,6 +198,40 @@ struct String fear_vformat(const struct String fmt, va_list args)
                 break;
             }
 
+            case 'z':
+            {
+                // We are out of bounds
+                if(i + 1 >= fmt.size)
+                {
+                    break;
+                }
+
+
+                const char spec_nested = fmt.data[i + 1];
+                i++;
+
+                const size_t data = va_arg(args,size_t);
+                format_int_specifier(&string_buffer,spec_nested,data);
+                break;
+            }
+
+            case 'l':
+            {
+                // We are out of bounds
+                if(i + 1 >= fmt.size)
+                {
+                    break;
+                }
+
+
+                const char spec_nested = fmt.data[i + 1];
+                i++;
+
+                const s64 data = va_arg(args,s64);
+                format_int_specifier(&string_buffer,spec_nested,data);
+                break;
+            }
+
             default:
             {
                 fear_push_char(&string_buffer,spec);
@@ -196,8 +243,7 @@ struct String fear_vformat(const struct String fmt, va_list args)
     return fear_str_from_buffer(&string_buffer);
 }
 
-struct String fear_format(const char *fmt, ...)
-{
+struct String fear_format(const char *fmt, ...) {
     va_list args;
     va_start(args,fmt);
 
@@ -207,15 +253,13 @@ struct String fear_format(const char *fmt, ...)
     return string;
 }
 
-void fear_vprint(const char* fmt, va_list args)
-{
+void fear_vprint(const char* fmt, va_list args) {
     struct String string = fear_vformat(fear_make_str(fmt),args);
     fear_write_str(string);
     fear_destroy_heap_str(&string);
 }
 
-void fear_print(const char *fmt, ...)
-{
+void fear_print(const char *fmt, ...) {
     va_list args;
     va_start(args,fmt);
     

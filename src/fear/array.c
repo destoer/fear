@@ -69,8 +69,7 @@ void fear_destroy_array(struct Array* array) {
 }
 
 u32 fear_array_count(const struct Array* array) {
-    if(array->elem_size == 0)
-    {
+    if(array->elem_size == 0) {
         return 0;
     }
 
@@ -83,12 +82,10 @@ void fear_read_array(const struct Array* array, u32 index, void* data) {
     fear_memcpy(data,&buffer[index * array->elem_size],array->elem_size);
 }  
 
-b8 fear_pop_var(struct Array* array, void* data)
-{
+b8 fear_pop_var(struct Array* array, void* data) {
     const u32 size = fear_array_count(array);
 
-    if(size == 0)
-    {
+    if(size == 0) {
         return true;
     }
 
@@ -97,8 +94,7 @@ b8 fear_pop_var(struct Array* array, void* data)
     return false;
 }
 
-struct String fear_str_from_buffer(struct Array* array)
-{
+struct String fear_str_from_buffer(struct Array* array) {
     // NULL term the string.
     fear_push_char(array,'\0');
 

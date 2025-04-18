@@ -1,50 +1,35 @@
 #include <fear/fear.h>
 
 
-static bool pointer_in_bounds(void* ptr, size_t min, size_t max)
-{
+static bool pointer_in_bounds(void* ptr, size_t min, size_t max) {
     const size_t value = (size_t)ptr;
     return value >= min && value <= max;
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-
-static void validate_heap(struct Heap* heap)
-{
+static void validate_heap(struct Heap* heap) {
     struct HeapNode* cur = heap->start;
     struct HeapNode* prev = NULL;
 
     while(cur)
     {
-        if(cur->canary_start != FEAR_HEAP_CANARY || cur->canary_end != FEAR_HEAP_CANARY)
-        {
-            printf("Heap canarys have been clobbered %p %lx %lx",cur,cur->canary_start,cur->canary_end);
-            exit(1);
+        if(cur->canary_start != FEAR_HEAP_CANARY || cur->canary_end != FEAR_HEAP_CANARY) {
+            fear_panic("Heap canary has been clobbered");
         }
 
-        if(cur->prev != prev)
-        {
-            printf("Prev does not match %p %p %p\n",cur,cur->prev,prev);
-            exit(1);
+        if(cur->prev != prev) {
+            fear_panic("Heap prev does not match");
         }
 
-        if(!pointer_in_bounds(cur->next,heap->min_addr,heap->max_addr) && cur->next != NULL)
-        {
-            printf("Heap next out of bounds %p %zx %zx\n",cur->prev,heap->min_addr,heap->max_addr);
-            exit(1);
+        if(!pointer_in_bounds(cur->next,heap->min_addr,heap->max_addr) && cur->next != NULL) {
+            fear_panic("Heap next is out of bounds");
         }
 
-        if(!pointer_in_bounds(cur->prev,heap->min_addr,heap->max_addr) && prev != NULL)
-        {
-            printf("Heap prev out of boudnds %p %zx %zx\n",cur->next,heap->min_addr,heap->max_addr);
-            exit(1);
+        if(!pointer_in_bounds(cur->prev,heap->min_addr,heap->max_addr) && prev != NULL) {
+            fear_panic("Heap prev is out of bounds");
         }
 
-        if(cur->blocks == 0 || cur->blocks > heap->max_block)
-        {
-            printf("Heap blocks out of range: %p %zx %zx\n",cur,cur->blocks,heap->max_block);
-            exit(1);
+        if(cur->blocks == 0 || cur->blocks > heap->max_block) {
+            fear_panic("Heap blocks out of range");
         }
 
         prev = cur;
@@ -56,10 +41,9 @@ struct HeapNode* find_first_fit(struct Heap* heap, u32 req_blocks)
 {
     struct HeapNode* cur = heap->start;
 
-    while(cur)
-    {   
-        if(cur->blocks >= req_blocks && cur->free)
-        {
+    while(cur) {   
+
+        if(cur->blocks >= req_blocks && cur->free) {
             return cur;
         }
 
@@ -76,24 +60,19 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
     const u64 bytes = size * count;
     const u64 req_blocks = ((bytes + FEAR_HEAP_BLOCK_SIZE - 1) / FEAR_HEAP_BLOCK_SIZE) + 1;
 
-    printf("Allocating %ld : %ld : %zd\n",bytes,req_blocks,FEAR_HEAP_BLOCK_SIZE);
-
     struct HeapNode* cur = find_first_fit(heap,req_blocks);
 
-    if(!cur)
-    {
+    if(!cur) {
         return NULL;
     }
 
-    if(cur->blocks == req_blocks)
-    {
+    if(cur->blocks == req_blocks) {
         cur->free = false;
         heap->in_use += req_blocks * FEAR_HEAP_BLOCK_SIZE;
         return cur + 1;
-    }
-
-    else if(cur->blocks > req_blocks)
-    {
+    } 
+    
+    else if(cur->blocks > req_blocks) {
         struct HeapNode* old = cur;
 
         const size_t remain = old->blocks - req_blocks; 
@@ -113,8 +92,7 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
         cur->canary_end = FEAR_HEAP_CANARY;
 
         // Repoint the surrounding blocks
-        if(cur->next)
-        {
+        if(cur->next) {
             cur->next->prev = cur;
         }
 
@@ -143,16 +121,14 @@ void fear_heap_free(struct Heap* heap, void* ptr)
         struct HeapNode* next = node->next;
 
         // Attempt to collapse upper
-        if(next && next->free && (node + node->blocks) == next)
-        {
+        if(next && next->free && (node + node->blocks) == next) {
             node->blocks += next->blocks;
             
             // Link over next
             node->next = next->next;
 
             // Link back prev of new next
-            if(node->next)
-            {
+            if(node->next) {
                 node->next->prev = node;
             }
         }
@@ -162,42 +138,36 @@ void fear_heap_free(struct Heap* heap, void* ptr)
         struct HeapNode* prev = node->prev;
 
         // Attempt to collapse before
-        if(prev && prev->free && (prev + prev->blocks) == node)
-        {
+        if(prev && prev->free && (prev + prev->blocks) == node) {
             prev->blocks += node->blocks;
 
             // Link over node
             prev->next = node->next;
 
             // Link back prev of node next
-            if(prev->next)
-            {
+            if(prev->next) {
                 prev->next->prev = prev;
             }
         }
     }
 }
 
-u64 fear_umin(u64 v1, u64 v2)
-{
+u64 fear_umin(u64 v1, u64 v2) {
     return v1 < v2? v1 : v2;
 }
 
 // This should be changed to try collapse blocks but it is easier if this just
 // copies and frees
-void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size)
-{
+void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size) {
     validate_heap(heap);
 
-    if(!old)
-    {
+    if(!old) {
         return fear_heap_alloc(heap,count,size);
     }
 
     void* new = fear_heap_alloc(heap,count,size);
 
-    if(!new)
-    {
+    if(!new) {
         return NULL;
     }
 
@@ -213,10 +183,9 @@ void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size)
     return new;
 }
 
-void fear_heap_init(struct Heap* heap, void* ptr, u32 size)
-{
-    if(size < FEAR_HEAP_BLOCK_SIZE)
-    {
+void fear_heap_init(struct Heap* heap, void* ptr, u32 size) {
+
+    if(size < FEAR_HEAP_BLOCK_SIZE) {
         return;
     }
 
@@ -240,22 +209,18 @@ void fear_heap_init(struct Heap* heap, void* ptr, u32 size)
     validate_heap(heap);
 }
 
-void* fear_alloc(size_t count, size_t size)
-{
+void* fear_alloc(size_t count, size_t size) {
     return fear_heap_alloc(&fear_context.heap,count,size);
 }
 
-void* fear_realloc(void* ptr, size_t count, size_t size)
-{
+void* fear_realloc(void* ptr, size_t count, size_t size) {
     return fear_heap_realloc(&fear_context.heap,ptr,count,size);
 }
 
-void fear_free(void* data)
-{
+void fear_free(void* data) {
     fear_heap_free(&fear_context.heap,data);
 }
 
-void fear_init_context(void* heap_block, size_t size)
-{
+void fear_init_context(void* heap_block, size_t size) {
     fear_heap_init(&fear_context.heap,heap_block,size);
 }

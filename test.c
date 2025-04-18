@@ -1,6 +1,7 @@
 #include <fear/fear.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 void test_array_push_and_pop()
@@ -30,10 +31,12 @@ void test_array_push_and_pop()
 
 void test_fear_format()
 {
-    struct String str = fear_format("Hello my name is %s i am %d(%x)\n","John",20,20);
+    u64 long_value = 0xdeadbeefcafebabe;
+    struct String str = fear_format("Hello my name is %s i am %d(%x) %lx\n","John",20,20,long_value);
     fear_write_str(str);
+    putchar('\n');
 
-    assert(fear_str_equal(str,fear_make_str("Hello my name is John i am 20(14)\n")));
+    assert(fear_str_equal(str,fear_make_str("Hello my name is John i am 20(14) DEADBEEFCAFEBABE\n")));
 
     fear_destroy_heap_str(&str);
 
@@ -54,7 +57,7 @@ int main()
     test_array_push_and_pop();
     test_fear_format();
 
-    FEAR_DEBUG("Heap in use: %d",fear_context.heap.in_use);
+    FEAR_DEBUG("Heap in use: %zd",fear_context.heap.in_use);
     assert(fear_context.heap.in_use == 0);
 
     free(heap);
