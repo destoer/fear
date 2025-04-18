@@ -1,8 +1,6 @@
 #include "fear/array.h"
 #include "fear/logger.h"
 #include "fear/platform.h"
-#include <stdio.h>
-#include <assert.h>
 
 enum fear_error fear_resize_array(struct Array *array, u32 size) {
     void* buffer = fear_realloc(array->data,size,sizeof(char));
@@ -25,7 +23,6 @@ static enum fear_error fear_reserve_mem(struct Array* array, u32 bytes) {
         void* buffer = fear_realloc(array->data,new_capacity,sizeof(char));
 
         if(!buffer) {
-            assert(false);
             return FEAR_ERROR_OOM;
         }
 

@@ -56,4 +56,6 @@ int main()
 
     FEAR_DEBUG("Heap in use: %d",fear_context.heap.in_use);
     assert(fear_context.heap.in_use == 0);
+
+    free(heap);
 }

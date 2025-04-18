@@ -82,14 +82,13 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
 
     if(!cur)
     {
-        assert(false);
         return NULL;
     }
 
     if(cur->blocks == req_blocks)
     {
         cur->free = false;
-        heap->in_use += bytes;
+        heap->in_use += req_blocks * FEAR_HEAP_BLOCK_SIZE;
         return cur + 1;
     }
 
@@ -107,25 +106,25 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
         
         cur->blocks = remain;
         cur->free = true;
+        // Point the new block at its neighbours 
         cur->prev = old;
         cur->next = old->next;
+        cur->canary_start = FEAR_HEAP_CANARY;
+        cur->canary_end = FEAR_HEAP_CANARY;
 
+        // Repoint the surrounding blocks
         if(cur->next)
         {
             cur->next->prev = cur;
         }
 
-        cur->canary_start = FEAR_HEAP_CANARY;
-        cur->canary_end = FEAR_HEAP_CANARY;
-
         old->next = cur;
         
-        heap->in_use += bytes;
+        heap->in_use += req_blocks * FEAR_HEAP_BLOCK_SIZE;
 
         return old + 1;
     }
 
-    assert(false);
     return NULL;
 }
 
@@ -133,8 +132,50 @@ void fear_heap_free(struct Heap* heap, void* ptr)
 {
     validate_heap(heap);
 
-    // For now just ignore it
-    FEAR_UNUSED(ptr);
+    struct HeapNode* node = (struct HeapNode*)ptr;
+    node -= 1;
+
+    // Mark as free
+    node->free = true;
+    heap->in_use -= node->blocks * FEAR_HEAP_BLOCK_SIZE;
+
+    {
+        struct HeapNode* next = node->next;
+
+        // Attempt to collapse upper
+        if(next && next->free && (node + node->blocks) == next)
+        {
+            node->blocks += next->blocks;
+            
+            // Link over next
+            node->next = next->next;
+
+            // Link back prev of new next
+            if(node->next)
+            {
+                node->next->prev = node;
+            }
+        }
+    }
+
+    {
+        struct HeapNode* prev = node->prev;
+
+        // Attempt to collapse before
+        if(prev && prev->free && (prev + prev->blocks) == node)
+        {
+            prev->blocks += node->blocks;
+
+            // Link over node
+            prev->next = node->next;
+
+            // Link back prev of node next
+            if(prev->next)
+            {
+                prev->next->prev = prev;
+            }
+        }
+    }
 }
 
 u64 fear_umin(u64 v1, u64 v2)
@@ -157,7 +198,6 @@ void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size)
 
     if(!new)
     {
-        assert(false);
         return NULL;
     }
 
