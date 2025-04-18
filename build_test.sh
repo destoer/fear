@@ -1,1 +1,1 @@
-gcc -DFEAR_LOGGING -Wall -Werror -Wextra test.c fear.c platform_stl.c -I include -o fear_test
+gcc -g -DFEAR_LOGGING -Wall -Werror -Wextra test.c fear.c platform_stl.c -I include -o fear_test

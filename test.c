@@ -53,4 +53,7 @@ int main()
 
     test_array_push_and_pop();
     test_fear_format();
+
+    FEAR_DEBUG("Heap in use: %d",fear_context.heap.in_use);
+    assert(fear_context.heap.in_use == 0);
 }
