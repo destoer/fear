@@ -2,7 +2,7 @@
 #include <assert.h>
 
 
-void array_push_and_pop()
+void test_array_push_and_pop()
 {
     struct Array array = fear_make_array(sizeof(u32));
 
@@ -27,9 +27,21 @@ void array_push_and_pop()
     FEAR_DEBUG("Array push and pop: PASS");
 }
 
+void test_fear_format()
+{
+    struct String str = fear_format("Hello my name is %s i am %d(%x)","John",20);
+    assert(fear_str_equal(str,fear_make_str("Hello my name is John i am 20(14)")));
+
+    fear_write_str(str);
+    fear_destroy_heap_str(&str);
+
+    FEAR_DEBUG("Fear format: pass");
+}
+
 int main()
 {
     FEAR_DEBUG("Starting fear tests!");
 
-    array_push_and_pop();
+    test_array_push_and_pop();
+    test_fear_format();
 }

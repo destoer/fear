@@ -96,3 +96,11 @@ b8 fear_pop_var(struct Array* array, void* data)
     array->size -= array->elem_size;
     return false;
 }
+
+struct String fear_str_from_buffer(const struct Array* array)
+{
+    return (struct String) {
+        .data = (char*)array->data,
+        .size =  array->size
+    };
+}
