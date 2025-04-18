@@ -108,6 +108,11 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
 
 void fear_heap_free(struct Heap* heap, void* ptr)
 {
+    if(!ptr)
+    {
+        return;
+    }
+
     validate_heap(heap);
 
     struct HeapNode* node = (struct HeapNode*)ptr;

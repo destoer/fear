@@ -29,6 +29,48 @@ void test_array_push_and_pop()
     FEAR_DEBUG("Array push and pop: PASS");
 }
 
+#define TEST_HEAP_ARR_SIZE 20
+
+void test_heap_stress()
+{
+    u32 pattern[TEST_HEAP_ARR_SIZE] = 
+    {
+        0,2,3,4,5,7,2,1,8,9,5,6,6,2,1,9,8,3,4,0
+    };
+
+    void* arr[TEST_HEAP_ARR_SIZE];
+
+    for(u32 i = 0; i < TEST_HEAP_ARR_SIZE; i++)
+    {
+        arr[i] = fear_alloc(1,55);
+    }
+
+    for (u32 i = 0; i < TEST_HEAP_ARR_SIZE; i++)
+    {
+        const u32 index = pattern[i];
+
+        if(arr[index])
+        {
+            fear_free(arr[index]);
+            arr[index] = NULL;
+        }
+
+        else
+        {
+            arr[index] = fear_alloc(1,index * 128);
+        }
+    }
+
+    for(u32 i = 0; i < TEST_HEAP_ARR_SIZE; i++)
+    {
+        fear_free(arr[i]);
+        arr[i] = NULL;
+    }
+
+    assert(fear_context.heap.in_use == 0);
+    FEAR_DEBUG("Heap stress: pass");
+}
+
 void test_fear_format()
 {
     u64 long_value = 0xdeadbeefcafebabe;
@@ -59,6 +101,8 @@ int main()
 
     FEAR_DEBUG("Heap in use: %zd",fear_context.heap.in_use);
     assert(fear_context.heap.in_use == 0);
+
+    test_heap_stress();
 
     free(heap);
 }
