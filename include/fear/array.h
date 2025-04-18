@@ -26,4 +26,4 @@ enum fear_error fear_push_var(struct Array *array, const void* data);
 b8 fear_pop_var(struct Array* array, void* data);
 u32 fear_array_count(const struct Array* array);
 void fear_read_array(const struct Array* array, u32 index, void* data);
-struct String fear_str_from_buffer(const struct Array* array);
+struct String fear_str_from_buffer(struct Array* array);

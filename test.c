@@ -29,10 +29,11 @@ void test_array_push_and_pop()
 
 void test_fear_format()
 {
-    struct String str = fear_format("Hello my name is %s i am %d(%x)","John",20);
-    assert(fear_str_equal(str,fear_make_str("Hello my name is John i am 20(14)")));
-
+    struct String str = fear_format("Hello my name is %s i am %d(%x)\n","John",20,20);
     fear_write_str(str);
+
+    assert(fear_str_equal(str,fear_make_str("Hello my name is John i am 20(14)\n")));
+
     fear_destroy_heap_str(&str);
 
     FEAR_DEBUG("Fear format: pass");

@@ -97,10 +97,14 @@ b8 fear_pop_var(struct Array* array, void* data)
     return false;
 }
 
-struct String fear_str_from_buffer(const struct Array* array)
+struct String fear_str_from_buffer(struct Array* array)
 {
+    // NULL term the string.
+    fear_push_char(array,'\0');
+
     return (struct String) {
         .data = (char*)array->data,
-        .size =  array->size
+        // NULL should not be visible to the string.
+        .size =  array->size - 1
     };
 }

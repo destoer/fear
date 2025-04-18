@@ -96,10 +96,102 @@ void fear_write_str(const struct String string)
     fear_write_chars(string.data);
 }
 
+void fear_format_int(struct Array* string_buffer,s32 v, u32 base)
+{
+    if(base > 16 || base == 0)
+    {
+        return;
+    }
+
+    if(v == 0)
+    {
+        fear_push_char(string_buffer,0);
+        return;
+    }
+
+    const u32 start_pos = string_buffer->size;
+
+    const char* DIGIT_CHAR = "0123456789ABCDEF";
+    u32 digits = 0;
+
+    while(v != 0)
+    {
+        s32 digit = v % base;
+        v = v / base;
+
+        char character = DIGIT_CHAR[digit];
+        fear_push_char(string_buffer,character);
+        digits += 1;
+    } 
+
+    char* start = (char*)&string_buffer->data[start_pos];
+
+    for(size_t i = 0; i < digits / 2; i++)
+    {
+        const char tmp = start[i];
+        char* v2 = &start[digits - i - 1];
+        start[i] = *v2;
+        *v2 = tmp;
+    }  
+}
+
 struct String fear_vformat(const struct String fmt, va_list args)
 {
     struct Array string_buffer = fear_make_array(sizeof(char));
-    FEAR_UNUSED(fmt); FEAR_UNUSED(args); FEAR_UNUSED(string_buffer);
+    // Having a buffer that is the size of the format string is a good lower limit on the size
+    fear_reserve_mem(&string_buffer,fmt.size);
+
+    for(u32 i = 0; i < fmt.size; i++)
+    {
+        if(fmt.data[i] != '%')
+        {
+            fear_push_char(&string_buffer,fmt.data[i]);
+            continue;
+        }
+
+        // We are out of bounds
+        if(i + 1 >= fmt.size)
+        {
+            break;
+        }
+
+        const char spec = fmt.data[i + 1];
+        i++;
+
+        switch(spec)
+        {
+            case 's':
+            {
+                const char* str = va_arg(args,const char*);
+                while(*str != '\0')
+                {
+                    fear_push_char(&string_buffer,*str);
+                    str++;
+                }
+                break;
+            }
+
+            case 'x':
+            {
+                const s32 data = va_arg(args,s32);
+                fear_format_int(&string_buffer,data,16);
+                break;
+            }
+
+            case 'd':
+            {
+                const s32 data = va_arg(args,s32);
+                fear_format_int(&string_buffer,data,10);
+                break;
+            }
+
+            default:
+            {
+                fear_push_char(&string_buffer,spec);
+                break;
+            }
+        }
+    }
 
     return fear_str_from_buffer(&string_buffer);
 }
