@@ -207,16 +207,20 @@ struct String fear_format(const char *fmt, ...)
     return string;
 }
 
+void fear_vprint(const char* fmt, va_list args)
+{
+    struct String string = fear_vformat(fear_make_str(fmt),args);
+    fear_write_str(string);
+    fear_destroy_heap_str(&string);
+}
+
 void fear_print(const char *fmt, ...)
 {
     va_list args;
     va_start(args,fmt);
-
-    struct String string = fear_vformat(fear_make_str(fmt),args);
+    
+    fear_vprint(fmt,args);
 
     va_end(args);
-
-    fear_write_str(string);
-    fear_destroy_heap_str(&string);
 }
 

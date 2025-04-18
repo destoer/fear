@@ -1,15 +1,13 @@
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <fear/string.h>
 
 void fear_log(const char* fmt,const char* prefix, const char* file, const char* function, int line,...) {
     va_list args;
     va_start(args,line);
 
-    fprintf(stderr,"[%s %s:%d %s]: ",prefix,file,line,function);
-    vfprintf(stderr,fmt,args);
+    fear_print("[%s %s:%d %s]: ",prefix,file,line,function);
+    fear_vprint(fmt,args);
 
     va_end(args);
 
-    fprintf(stderr,"\n");
+    fear_write_chars("\n");
 }

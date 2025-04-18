@@ -1,6 +1,7 @@
 #pragma once
 #include "type.h"
 #include "error.h"
+#include <stdarg.h>
 
 struct String {
     // NULL terminated string.
@@ -20,3 +21,5 @@ void fear_destroy_heap_str(struct String* string);
 void fear_write_str(const struct String string);
 struct String fear_format(const char* fmt, ...);
 void fear_write_str(const struct String string);
+void fear_vprint(const char* fmt, va_list args);
+void fear_print(const char *fmt, ...);
