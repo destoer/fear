@@ -7,5 +7,6 @@
 #include "src/fear/stl_helpers.c"
 #endif
 #include "src/fear/string.c"
+#include "src/fear/math.c"
 
 struct FearContext fear_context;

@@ -7,6 +7,7 @@
 #include "mem.h"
 #include "platform.h"
 #include "heap.h"
+#include "math.h"
 
 #ifdef FEAR_STL_ENABLED
 #include "stl.h"
