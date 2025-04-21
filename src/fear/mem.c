@@ -20,3 +20,10 @@ void fear_memcpy(void* dst, const void* src, u32 size) {
 void fear_zero_mem(void* dst, u32 size) {
     fear_memset(dst,0,size);
 }
+
+void fear_swap_s32(s32* v1, s32* v2) {
+    const s32 tmp = *v1;
+    
+    *v1 = *v2;
+    *v2 = tmp;
+}
