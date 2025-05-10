@@ -1,1 +1,7 @@
 fear_test
+
+CMakeCache.txt
+Makefile
+CMakeFiles/
+libfear.a
+cmake_install.cmake

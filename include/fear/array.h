@@ -2,6 +2,15 @@
 #include "type.h"
 #include "error.h"
 
+struct Buffer {
+    u8* data;
+    u32 size;
+};
+
+struct ConstBuffer {
+    const u8* data;
+    u32 size;
+};
 
 struct Array {
     // Underlying data pointer.

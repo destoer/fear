@@ -23,3 +23,5 @@ struct String fear_format(const char* fmt, ...);
 void fear_write_str(const struct String string);
 void fear_vprint(const char* fmt, va_list args);
 void fear_print(const char *fmt, ...);
+
+u32 fear_strlen(const char* str);

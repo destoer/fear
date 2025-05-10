@@ -33,6 +33,8 @@ void test_array_push_and_pop()
 
 void test_heap_stress()
 {
+    const u32 base = fear_context.heap.in_use;
+
     u32 pattern[TEST_HEAP_ARR_SIZE] = 
     {
         0,2,3,4,5,7,2,1,8,9,5,6,6,2,1,9,8,3,4,0
@@ -51,8 +53,7 @@ void test_heap_stress()
 
         if(arr[index])
         {
-            fear_free(arr[index]);
-            arr[index] = NULL;
+            arr[index] = fear_free(arr[index]);
         }
 
         else
@@ -63,11 +64,10 @@ void test_heap_stress()
 
     for(u32 i = 0; i < TEST_HEAP_ARR_SIZE; i++)
     {
-        fear_free(arr[i]);
-        arr[i] = NULL;
+        arr[i] = fear_free(arr[i]);
     }
 
-    assert(fear_context.heap.in_use == 0);
+    assert(fear_context.heap.in_use == base);
     FEAR_DEBUG("Heap stress: pass");
 }
 
@@ -76,7 +76,6 @@ void test_fear_format()
     u64 long_value = 0xdeadbeefcafebabe;
     struct String str = fear_format("Hello my name is %s i am %d(%x) %lx\n","John",20,20,long_value);
     fear_write_str(str);
-    putchar('\n');
 
     assert(fear_str_equal(str,fear_make_str("Hello my name is John i am 20(14) DEADBEEFCAFEBABE\n")));
 
@@ -88,11 +87,9 @@ void test_fear_format()
 int main()
 {
     // Setup our heap
-    size_t heap_size = 4 * 1024 * 1024;
-    void* heap = malloc(heap_size);
-    assert(heap);
+    fear_init_context();
 
-    fear_init_context(heap,heap_size);
+    const u32 base = fear_context.heap.in_use;
 
     FEAR_DEBUG("Starting fear tests!");
 
@@ -100,9 +97,9 @@ int main()
     test_fear_format();
 
     FEAR_DEBUG("Heap in use: %zd",fear_context.heap.in_use);
-    assert(fear_context.heap.in_use == 0);
+    assert(fear_context.heap.in_use == base);
 
     test_heap_stress();
 
-    free(heap);
+    fear_destroy_context();
 }

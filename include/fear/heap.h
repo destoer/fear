@@ -27,11 +27,12 @@ struct Heap
     size_t in_use;
 };
 
-
+#define DEFAULT_BLOCK_SIZE 16 * 1024
 #define FEAR_HEAP_BLOCK_SIZE (sizeof(struct HeapNode))
 
 
 void* fear_alloc(size_t count, size_t size);
 void* fear_realloc(void* ptr, size_t count, size_t size);
-void fear_free(void* data);
-void fear_init_context(void* heap_block, size_t size);
+void* fear_free(void* data);
+
+void fear_init_heap(struct Heap* heap);

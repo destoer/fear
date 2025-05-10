@@ -53,6 +53,64 @@ struct HeapNode* find_first_fit(struct Heap* heap, u32 req_blocks)
     return NULL;
 }
 
+void fear_init_heap(struct Heap* heap) {
+    heap->max_addr = (size_t)(0);
+    heap->min_addr = (size_t)(-1);
+    heap->in_use = 0;
+    heap->start = NULL;
+}
+
+static void fear_heap_add_block(struct Heap* heap, struct HeapNode* node)
+{
+    struct HeapNode* cur = heap->start;
+    
+    if(!cur)
+    {
+        heap->start = node;
+        return;
+    }
+
+    while(cur->next)
+    {
+        cur = cur->next;
+    }
+
+    cur->next = node;
+    node->prev = cur;
+}
+
+void fear_heap_acquire(struct Heap* heap, size_t size) {
+    if(size < FEAR_HEAP_BLOCK_SIZE) {
+        return;
+    }
+
+    void* ptr = fear_acquire_memory(size);
+
+    if(!ptr)
+    {
+        return;
+    }
+
+    fear_zero_mem(ptr,size);
+
+    struct HeapNode* node = (struct HeapNode*)ptr;
+    node->blocks = size / FEAR_HEAP_BLOCK_SIZE;
+    node->next = NULL;
+    node->prev = NULL;
+    node->free = true;
+    node->canary_start = FEAR_HEAP_CANARY;
+    node->canary_end = FEAR_HEAP_CANARY;
+
+    heap->max_addr = fear_max2_u64(heap->max_addr,(u64)&node[node->blocks]);
+    heap->min_addr = fear_min2_u64(heap->min_addr,(size_t)node);
+    heap->max_block += node->blocks;
+
+    fear_heap_add_block(heap,node);
+
+    validate_heap(heap);
+}
+
+
 void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
 {
     validate_heap(heap);
@@ -63,7 +121,15 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
     struct HeapNode* cur = find_first_fit(heap,req_blocks);
 
     if(!cur) {
-        return NULL;
+        // Attempt to grab the memory we are missing.
+        fear_heap_acquire(heap,fear_max2_u64(DEFAULT_BLOCK_SIZE,bytes * 2));
+        cur = find_first_fit(heap,req_blocks);
+
+        if(!cur)
+        {
+            fear_write_chars("Out of memory!");
+            return NULL;
+        }
     }
 
     if(cur->blocks == req_blocks) {
@@ -157,10 +223,6 @@ void fear_heap_free(struct Heap* heap, void* ptr)
     }
 }
 
-u64 fear_umin(u64 v1, u64 v2) {
-    return v1 < v2? v1 : v2;
-}
-
 // This should be changed to try collapse blocks but it is easier if this just
 // copies and frees
 void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size) {
@@ -180,38 +242,12 @@ void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size) {
     struct HeapNode* node = (struct HeapNode*)old;
     node -= 1;
 
-    const u64 copy_size = fear_umin((node->blocks - 1) * FEAR_HEAP_BLOCK_SIZE,count * size);
+    const u64 copy_size = fear_min2_u64((node->blocks - 1) * FEAR_HEAP_BLOCK_SIZE,count * size);
     fear_memcpy(new,old,copy_size);
     fear_heap_free(heap,old);
 
     validate_heap(heap);
     return new;
-}
-
-void fear_heap_init(struct Heap* heap, void* ptr, u32 size) {
-
-    if(size < FEAR_HEAP_BLOCK_SIZE) {
-        return;
-    }
-
-    fear_zero_mem(ptr,size);
-
-
-    struct HeapNode* node = (struct HeapNode*)ptr;
-    node->blocks = size / FEAR_HEAP_BLOCK_SIZE;
-    node->next = NULL;
-    node->prev = NULL;
-    node->free = true;
-    node->canary_start = FEAR_HEAP_CANARY;
-    node->canary_end = FEAR_HEAP_CANARY;
-
-    heap->start = node;
-    heap->max_block = node->blocks;
-    heap->max_addr = (size_t)&node[node->blocks];
-    heap->min_addr = (size_t)node;
-    heap->in_use = 0;
-
-    validate_heap(heap);
 }
 
 void* fear_alloc(size_t count, size_t size) {
@@ -222,10 +258,7 @@ void* fear_realloc(void* ptr, size_t count, size_t size) {
     return fear_heap_realloc(&fear_context.heap,ptr,count,size);
 }
 
-void fear_free(void* data) {
+void* fear_free(void* data) {
     fear_heap_free(&fear_context.heap,data);
-}
-
-void fear_init_context(void* heap_block, size_t size) {
-    fear_heap_init(&fear_context.heap,heap_block,size);
+    return NULL;
 }

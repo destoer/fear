@@ -9,15 +9,13 @@
 #include "heap.h"
 #include "math.h"
 
-#ifdef FEAR_STL_ENABLED
-#include "stl.h"
-#endif
-
 #define FEAR_UNUSED(X) ((void)X)
 
 struct FearContext
 {
     struct Heap heap;
+    struct File* stdout;
+    u8* brk_ptr;
 };
 
 extern struct FearContext fear_context;

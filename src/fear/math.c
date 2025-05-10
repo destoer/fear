@@ -4,8 +4,20 @@ s64 fear_abs(s64 v1) {
     return v1 < 0? -v1 : v1;
 }
 
+u64 fear_min2_u64(u64 v1, u64 v2) {
+    return v1 < v2? v1 : v2;
+}
+
 s32 fear_min2_s32(s32 v1, s32 v2) {
     return v1 < v2? v1 : v2;
+}
+
+u64 fear_max2_u64(u64 v1, u64 v2) {
+    return v1 > v2? v1 : v2;
+}
+
+u32 fear_max2_u32(u32 v1, u32 v2) {
+    return v1 > v2? v1 : v2;
 }
 
 s32 fear_min3_s32(s32 v1, s32 v2, s32 v3) {

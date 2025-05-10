@@ -65,7 +65,7 @@ struct Array fear_make_array(u32 elem_size) {
 }
 
 void fear_destroy_array(struct Array* array) {
-    fear_free(array->data);
+    array->data = fear_free(array->data);
 }
 
 u32 fear_array_count(const struct Array* array) {

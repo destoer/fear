@@ -20,7 +20,7 @@ struct Arena fear_make_arena(void* buffer, u32 size) {
 }
 
 void fear_destroy_arena(struct Arena* arena) {
-    fear_free(arena->data);
+    arena->data = fear_free(arena->data);
 }
 
 void* fear_arena_alloc(struct Arena* arena,u32 size) {

@@ -86,8 +86,7 @@ b8 fear_parse_int(const struct String str, s64* ans) {
 
 void fear_destroy_heap_str(struct String* string)
 {
-    fear_free((char*)string->data);
-    string->data = NULL;
+    string->data = fear_free((char*)string->data);
     string->size = 0;
 }
 
