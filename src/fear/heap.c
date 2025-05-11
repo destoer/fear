@@ -10,8 +10,7 @@ static void validate_heap(struct Heap* heap) {
     struct HeapNode* cur = heap->start;
     struct HeapNode* prev = NULL;
 
-    while(cur)
-    {
+    while(cur) {
         if(cur->canary_start != FEAR_HEAP_CANARY || cur->canary_end != FEAR_HEAP_CANARY) {
             fear_panic("Heap canary has been clobbered");
         }
@@ -64,14 +63,12 @@ static void fear_heap_add_block(struct Heap* heap, struct HeapNode* node)
 {
     struct HeapNode* cur = heap->start;
     
-    if(!cur)
-    {
+    if(!cur) {
         heap->start = node;
         return;
     }
 
-    while(cur->next)
-    {
+    while(cur->next) {
         cur = cur->next;
     }
 
@@ -86,8 +83,7 @@ void fear_heap_acquire(struct Heap* heap, size_t size) {
 
     void* ptr = fear_acquire_memory(size);
 
-    if(!ptr)
-    {
+    if(!ptr) {
         return;
     }
 
@@ -122,7 +118,7 @@ void* fear_heap_alloc(struct Heap* heap, u32 count, u32 size)
 
     if(!cur) {
         // Attempt to grab the memory we are missing.
-        fear_heap_acquire(heap,fear_max2_u64(DEFAULT_BLOCK_SIZE,bytes * 2));
+        fear_heap_acquire(heap,fear_max2_u64(DEFAULT_BLOCK_SIZE,req_blocks * FEAR_HEAP_BLOCK_SIZE * 2));
         cur = find_first_fit(heap,req_blocks);
 
         if(!cur)
@@ -252,6 +248,16 @@ void* fear_heap_realloc(struct Heap* heap, void* old, u32 count, u32 size) {
 
 void* fear_alloc(size_t count, size_t size) {
     return fear_heap_alloc(&fear_context.heap,count,size);
+}
+
+void* fear_calloc(size_t count, size_t size) {
+    void* buffer = fear_heap_alloc(&fear_context.heap,count,size);
+
+    if(buffer) {
+        fear_zero_mem(buffer,count * size);
+    }
+
+    return buffer;
 }
 
 void* fear_realloc(void* ptr, size_t count, size_t size) {

@@ -35,6 +35,10 @@ void test_heap_stress()
 {
     const u32 base = fear_context.heap.in_use;
 
+    // do a large alloc
+    void* buffer = fear_alloc(640 * 480,4);
+    buffer = fear_free(buffer);
+
     u32 pattern[TEST_HEAP_ARR_SIZE] = 
     {
         0,2,3,4,5,7,2,1,8,9,5,6,6,2,1,9,8,3,4,0

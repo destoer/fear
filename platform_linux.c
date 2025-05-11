@@ -20,7 +20,7 @@ u32 fear_write_chars(const char* str) {
     }
 
     const u32 size = fear_strlen(str);
-    fear_write_file(fear_context.stdout,&(struct ConstBuffer){.data = str,.size = size});
+    fear_write_file(fear_context.stdout,&(struct ConstBuffer){.data = (u8*)str,.size = size});
 
     return size;
 }
@@ -33,8 +33,6 @@ void fear_panic(const char* str) {
 
 void fear_init_context() {
     fear_context.stdout = NULL;
-
-    fear_context.brk_ptr = sbrk(0);
     fear_init_heap(&fear_context.heap);
 
     const struct String name = fear_make_str("/dev/stdout");
@@ -87,6 +85,8 @@ enum fear_error fear_open_file(struct File** file, const struct String* name, en
         return FEAR_ERROR_OOM;
     }
 
+    *opened_file = (struct File) {.fd = fd};
+
     *file = opened_file;
 
     return FEAR_OK;
@@ -102,13 +102,9 @@ enum fear_error fear_write_file(struct File* file, const struct ConstBuffer* buf
 void fear_close_file(struct File** file)
 {
     close((*file)->fd);
-    file = fear_free(file);
+    file = fear_free(*file);
 }
 
 void* fear_acquire_memory(size_t size) {
-    u8* old = fear_context.brk_ptr;
-
-    fear_context.brk_ptr = sbrk(size);
-
-    return old;
+    return malloc(size);
 }
