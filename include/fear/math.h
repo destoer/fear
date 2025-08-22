@@ -21,3 +21,12 @@ u64 fear_max2_u64(u64 v1, u64 v2);
 u32 fear_max2_u32(u32 v1, u32 v2);
 
 s32 fear_dot_product_2i(struct Vec2I v1, struct Vec2I v2);
+
+
+struct Vec2F {
+    f32 x;
+    f32 y;
+};
+
+f32 fear_dot_product_2f(struct Vec2F v1, struct Vec2F v2);
+struct Vec2F fear_vec2f_sub(struct Vec2F v1, struct Vec2F v2);

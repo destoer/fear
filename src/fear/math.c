@@ -41,3 +41,14 @@ s32 fear_max3_s32(s32 v1, s32 v2, s32 v3) {
 s32 fear_dot_product_2i(struct Vec2I v1, struct Vec2I v2) {
     return (v1.x * v2.x) + (v1.y * v2.y);
 }
+
+f32 fear_dot_product_2f(struct Vec2F v1, struct Vec2F v2) {
+    return (v1.x * v2.x) + (v1.y * v2.y);
+}
+
+struct Vec2F fear_vec2f_sub(struct Vec2F v1, struct Vec2F v2) {
+    return (struct Vec2F) {
+        v1.x - v2.x,
+        v1.y - v2.y
+    };
+}
